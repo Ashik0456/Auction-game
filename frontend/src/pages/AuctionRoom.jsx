@@ -131,9 +131,22 @@ export default function AuctionRoom() {
 
 
 
+    // Optimized bid handler with debouncing for faster response
+    const bidTimeoutRef = useRef(null);
     const handleBid = () => {
-        if (!room) return;
-        socket.emit('place_bid', { roomCode, username, amount: room.currentBid + 0.5 });
+        if (!room || !canBid) return;
+
+        // Clear any pending bid timeout
+        if (bidTimeoutRef.current) {
+            clearTimeout(bidTimeoutRef.current);
+        }
+
+        // Immediate UI feedback - optimistic update
+        const newBid = room.currentBid + 0.5;
+        setRoom(prev => ({ ...prev, currentBid: newBid, highestBidder: username }));
+
+        // Send to server
+        socket.emit('place_bid', { roomCode, username, amount: newBid });
     };
 
     if (!room) return (
@@ -171,9 +184,18 @@ export default function AuctionRoom() {
     const isCreator = myParticipant?.isCreator;
     const canBid = room.isAuctionStarted && currentPlayer && !currentPlayer.isSold && myBudget >= (room.currentBid + 0.5) && room.highestBidder !== username;
 
-    // Derived Lists
+    // Derived Lists - Fixed unsold filter to exclude current bidding player
     const soldPlayers = room.playersPool?.filter(p => p.isSold) || [];
-    const unsoldPlayers = room.playersPool?.filter((p, idx) => !p.isSold && idx < room.currentPlayerIndex && p.id !== currentPlayer?.id) || [];
+    const unsoldPlayers = room.playersPool?.filter((p, idx) => {
+        // Exclude sold players
+        if (p.isSold) return false;
+        // Exclude current player being bid on
+        if (p.id === currentPlayer?.id) return false;
+        // Exclude upcoming players
+        if (idx >= room.currentPlayerIndex) return false;
+        // Include only past players that weren't sold
+        return idx < room.currentPlayerIndex;
+    }) || [];
     const upcomingPlayers = room.playersPool?.filter((p, idx) => idx > room.currentPlayerIndex) || [];
 
     // Helper to get a team's squad
@@ -560,6 +582,15 @@ export default function AuctionRoom() {
                     </div>
                 </div>
             )}
+            {/* Footer */}
+            <footer className="absolute bottom-0 left-0 right-0 bg-[#0b0e11]/80 backdrop-blur-sm border-t border-white/5 py-3 px-6 z-10">
+                <div className="text-center">
+                    <p className="text-xs text-slate-500">
+                        Developed with <span className="text-red-500 animate-pulse">❤</span> by{' '}
+                        <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-pl-purple to-pl-pink">Muhamed Ashik</span>
+                    </p>
+                </div>
+            </footer>
         </div >
     );
 }

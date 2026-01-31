@@ -280,6 +280,16 @@ export default function Landing() {
                 </div>
 
             </div>
+
+            {/* Footer */}
+            <footer className="absolute bottom-0 left-0 right-0 bg-noble-black/80 backdrop-blur-sm border-t border-white/5 py-3 px-6 z-10">
+                <div className="text-center">
+                    <p className="text-xs text-slate-500">
+                        Developed with <span className="text-red-500 animate-pulse">❤</span> by{' '}
+                        <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-pl-purple to-pl-pink">Muhamed Ashik</span>
+                    </p>
+                </div>
+            </footer>
         </div>
     );
 }
