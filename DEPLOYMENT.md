@@ -14,8 +14,10 @@ Add these in Render dashboard:
 ```
 MONGO_URI=<your-mongodb-atlas-connection-string>
 NODE_ENV=production
-FRONTEND_URL=<your-frontend-url>
+FRONTEND_URL=https://auction-game-phi.vercel.app (optional - already hardcoded in server.js)
 ```
+
+**Note:** The Vercel frontend URL is already hardcoded in the CORS configuration, but you can override it with the FRONTEND_URL environment variable if needed.
 
 ### Auto-Deploy
 - Branch: `main`
