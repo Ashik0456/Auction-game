@@ -131,21 +131,13 @@ export default function AuctionRoom() {
 
 
 
-    // Optimized bid handler with debouncing for faster response
-    const bidTimeoutRef = useRef(null);
+    // Optimized bid handler for instant response
     const handleBid = () => {
         if (!room || !canBid) return;
 
-        // Clear any pending bid timeout
-        if (bidTimeoutRef.current) {
-            clearTimeout(bidTimeoutRef.current);
-        }
-
-        // Immediate UI feedback - optimistic update
         const newBid = room.currentBid + 0.5;
-        setRoom(prev => ({ ...prev, currentBid: newBid, highestBidder: username }));
 
-        // Send to server
+        // Send to server immediately
         socket.emit('place_bid', { roomCode, username, amount: newBid });
     };
 

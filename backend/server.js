@@ -344,13 +344,17 @@ io.on('connection', (socket) => {
             if (amount > room.currentBid) {
                 room.currentBid = amount;
                 room.highestBidder = username;
-                await room.save();
 
+                // Emit immediately for faster UI response
                 io.to(roomCode).emit('bid_update', {
                     currentBid: amount,
                     highestBidder: username
                 });
 
+                // Save in background
+                room.save().catch(err => console.error('Bid save error:', err));
+
+                // Reset timer
                 resetTimer(roomCode, room.timerPreference);
             }
         } catch (err) {
@@ -434,13 +438,25 @@ async function resolveRound(roomCode) {
         const player = room.playersPool[room.currentPlayerIndex];
         if (!player) return;
 
+        let winner = null;
+        let price = player.basePrice;
+        let message = '';
+
         if (room.highestBidder) {
             player.isSold = true;
             player.soldTo = room.highestBidder;
             player.soldPrice = room.currentBid;
+            winner = room.highestBidder;
+            price = room.currentBid;
+            message = `${player.name} SOLD to ${winner} for ₹${price} Cr`;
 
             const buyer = room.participants.find(p => p.username === room.highestBidder);
             if (buyer) buyer.budget -= room.currentBid;
+        } else {
+            player.isSold = false;
+            player.soldTo = null;
+            player.soldPrice = 0;
+            message = `${player.name} went UNSOLD`;
         }
 
         room.currentPlayerIndex++;
@@ -453,10 +469,13 @@ async function resolveRound(roomCode) {
 
         io.to(roomCode).emit('player_result', {
             player,
+            winner,
+            price,
+            message,
             updatedParticipants: room.participants
         });
 
-        setTimeout(() => startTimerLoop(roomCode), 1000);
+        setTimeout(() => startTimerLoop(roomCode), 2000);
     } catch (err) {
         console.error('Resolve round error:', err);
     }
