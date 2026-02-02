@@ -14,7 +14,8 @@ const app = express();
 const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:3000',
-    'https://auction-game-phi.vercel.app',  // Explicit Vercel URL
+    'https://auction-game-phi.vercel.app',  // Production Vercel URL
+    'https://auction-game-git-master-muhamed-ashiks-projects.vercel.app',  // Preview deployment URL
     ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(url => url.trim()) : [])
 ].filter(Boolean);
 
